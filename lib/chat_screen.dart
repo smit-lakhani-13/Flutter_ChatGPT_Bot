@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:chat_gpt/chatmessage.dart';
+import 'package:chat_gpt/threedots.dart';
 import 'package:chat_gpt_sdk/chat_gpt_sdk.dart';
 import 'package:flutter/material.dart';
 import 'package:velocity_x/velocity_x.dart';
@@ -20,6 +21,7 @@ class _ChatScreenState extends State<ChatScreen> {
   ChatGPT? chatGPT;
 
   StreamSubscription? _subscription;
+  bool _isTyping = false;
 
   @override
   void initState() {
@@ -41,6 +43,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
     setState(() {
       _messages.insert(0, message);
+      _isTyping = true;
     });
 
     _controller.clear();
@@ -49,7 +52,7 @@ class _ChatScreenState extends State<ChatScreen> {
         prompt: message.text, model: kTranslateModelV3, max_tokens: 200);
 
     _subscription = chatGPT!
-        .builder("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",
+        .builder("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",
             orgId: "")
         .onCompleteStream(request: request)
         .listen((response) {
@@ -58,6 +61,7 @@ class _ChatScreenState extends State<ChatScreen> {
           ChatMessage(text: response.choices[0].text, sender: "bot");
 
       setState(() {
+        _isTyping = false;
         _messages.insert(0, botMessage);
       });
     });
@@ -84,7 +88,10 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Smit's_ChatGPT_Bot")),
+      appBar: AppBar(
+        title: const Text("Smit's_ChatGPT_Bot"),
+        centerTitle: true,
+      ),
       body: SafeArea(
         child: Column(children: [
           Flexible(
@@ -96,6 +103,10 @@ class _ChatScreenState extends State<ChatScreen> {
                 return _messages[index];
               },
             ),
+          ),
+          if (_isTyping) ThreeDots(),
+          Divider(
+            height: 1.0,
           ),
           Container(
             decoration: BoxDecoration(color: context.cardColor),
